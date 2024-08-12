@@ -13,8 +13,8 @@ class ObjectDetector:
 
     def procesar_frame(self, frame):
         # Convertir el frame a formato que acepte el modelo (BGR a RGB)
-        frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-
+        #frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        frame_rgb = frame
         # Realizar la detección
         detect = self.modelo(frame_rgb)
 
