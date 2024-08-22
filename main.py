@@ -1,12 +1,10 @@
-# Archivo: main.py
-
 import torch
 import cv2
 from components.model import ModelHandler
 from components.video import VideoCapture, URLCapture
 from components.prosecution import ObjectDetector
 from components.interfaz import UIHandler
-
+from components.voiceOutput import VoiceOutput
 
 def main():
     # Rutas y configuraciones
@@ -16,14 +14,21 @@ def main():
     ancho = 640
     alto = 480
 
+    # Parámetros de calibración
+    KNOWN_DISTANCE = 50.0  # Distancia conocida en cm
+    KNOWN_WIDTH = 8.5      # Ancho conocido del objeto en cm
+
     # Inicializar componentes
     modelo = ModelHandler(ruta_modelo)
     if url:
         captura = URLCapture(url)
     else:
         captura = VideoCapture(camara_id, ancho, alto)
-    detector = ObjectDetector(modelo.detectar_objetos)
+    detector = ObjectDetector(modelo.detectar_objetos, KNOWN_DISTANCE, KNOWN_WIDTH)
     ui = UIHandler()
+    voice_output = VoiceOutput()
+    
+    esp32_ip = "192.168.0.100"  # Reemplaza con la IP real de tu ESP32-CAM
 
     while True:
         # Capturar frame
@@ -34,6 +39,10 @@ def main():
         # Procesar frame y obtener resultados de detección
         info, frame_renderizado = detector.procesar_frame(frame)
         print(info)
+
+        # Verificar si el DataFrame de detección no está vacío
+        if not info.empty:
+            voice_output.send_audio_to_esp32("Objeto detectado", esp32_ip)
 
         # Mostrar frame con detecciones
         ui.mostrar_frame('Detector de objetos', frame_renderizado)
